@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MindSpace</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080c1a;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --accent:#6ee7b7;--accent2:#818cf8;--accent3:#f472b6;
+  --text:#e2e8f0;--muted:#64748b;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 10% 20%,rgba(110,231,183,0.05) 0%,transparent 70%),radial-gradient(ellipse 500px 300px at 90% 80%,rgba(129,140,248,0.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+.screen{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+.screen.active{display:flex}
+
+/* WELCOME */
+#welcome{padding:44px 22px 32px;gap:24px;animation:fadeUp .5s ease}
+.logo-icon{width:68px;height:68px;border-radius:20px;background:linear-gradient(135deg,rgba(110,231,183,0.2),rgba(129,140,248,0.2));border:1px solid rgba(110,231,183,0.25);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px;box-shadow:0 0 40px rgba(110,231,183,0.12)}
+h1{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;background:linear-gradient(135deg,#fff 0%,#6ee7b7 60%,#818cf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.15;margin-bottom:8px;text-align:center}
+.tagline{color:var(--muted);font-size:13px;line-height:1.7;text-align:center}
+.guarantee-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px}
+.g-title{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.g-item{display:flex;gap:10px;color:#94a3b8;font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);line-height:1.5}
+.g-item:last-child{border-bottom:none}
+.agree-row{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.checkbox{width:22px;height:22px;border-radius:7px;flex-shrink:0;margin-top:1px;border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.checkbox.on{background:linear-gradient(135deg,#6ee7b7,#818cf8);border:none}
+.checkbox.on::after{content:'✓';color:#080c1a;font-size:13px;font-weight:700}
+.agree-text{color:var(--muted);font-size:13px;line-height:1.6}
+.start-btn{padding:16px;border-radius:16px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;transition:all .3s;width:100%}
+.start-btn.on{background:linear-gradient(135deg,rgba(110,231,183,0.2),rgba(129,140,248,0.2));border:1px solid rgba(110,231,183,0.35);color:var(--text);box-shadow:0 0 30px rgba(110,231,183,0.08)}
+.start-btn.off{background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:not-allowed}
+
+/* CATEGORY */
+#category{padding:36px 22px 32px;animation:fadeUp .4s ease}
+.back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;margin-bottom:18px;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px}
+.stitle{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text);margin-bottom:6px;line-height:1.2}
+.ssub{color:var(--muted);font-size:13px;margin-bottom:26px;line-height:1.6}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cat-btn{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 14px;cursor:pointer;text-align:left;transition:all .2s;-webkit-appearance:none}
+.cat-btn.full{grid-column:1/-1}
+.cat-btn.crisis{background:rgba(252,165,165,0.07);border-color:rgba(252,165,165,0.2)}
+.cat-btn:active{transform:scale(0.96)}
+.cat-emoji{font-size:26px;margin-bottom:7px}
+.cat-label{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.cat-btn.crisis .cat-label{color:#fca5a5}
+
+/* MODE SELECT */
+#modeSelect{padding:36px 22px 32px;animation:fadeUp .4s ease}
+.mode-cards{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.mode-card{border-radius:18px;padding:22px;cursor:pointer;transition:all .25s;border:1px solid var(--border);-webkit-appearance:none;text-align:left}
+.mode-card:active{transform:scale(0.97)}
+.mode-card.ai-card{background:linear-gradient(135deg,rgba(110,231,183,0.1),rgba(129,140,248,0.08));border-color:rgba(110,231,183,0.25)}
+.mode-card.human-card{background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.08));border-color:rgba(244,114,182,0.25)}
+.mode-icon{font-size:36px;margin-bottom:12px}
+.mode-title{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:6px}
+.mode-card.ai-card .mode-title{color:var(--accent)}
+.mode-card.human-card .mode-title{color:var(--accent3)}
+.mode-desc{color:#94a3b8;font-size:13px;line-height:1.6}
+.mode-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;margin-top:10px;font-weight:600}
+.ai-badge{background:rgba(110,231,183,0.12);color:var(--accent)}
+.human-badge{background:rgba(244,114,182,0.12);color:var(--accent3)}
+
+/* CHAT */
+#chat{height:100vh;height:100dvh;flex-direction:column}
+.chat-header{padding:13px 15px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:rgba(8,12,26,0.88);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.chat-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.chat-avatar.ai-av{background:rgba(110,231,183,0.15);border:1px solid rgba(110,231,183,0.2)}
+.chat-avatar.human-av{background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.2)}
+.chat-info-name{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--text)}
+.chat-info-status{font-size:11px;display:flex;align-items:center;gap:4px}
+.sdot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.sdot.green{background:#22c55e}
+.sdot.pink{background:var(--accent3)}
+.status-ai{color:#22c55e}
+.status-human{color:var(--accent3)}
+.header-tools{margin-left:auto;display:flex;gap:6px}
+.tool-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 9px;cursor:pointer;font-size:14px;transition:all .2s}
+.tool-btn:active{transform:scale(0.9)}
+
+.messages{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;height:calc(100dvh - 130px)}
+.msg-row{display:flex;align-items:flex-end;gap:7px}
+.msg-row.user{justify-content:flex-end}
+.msg-avatar-sm{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.msg-avatar-sm.ai-sm{background:rgba(110,231,183,0.12);border:1px solid rgba(110,231,183,0.2)}
+.msg-avatar-sm.human-sm{background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.2)}
+.bubble{max-width:76%;padding:11px 14px;font-size:14px;line-height:1.65;animation:msgIn .25s ease}
+.bubble.ai-b{background:var(--surface);border:1px solid var(--border);border-radius:4px 18px 18px 18px;color:#cbd5e1}
+.bubble.human-b{background:rgba(244,114,182,0.1);border:1px solid rgba(244,114,182,0.2);border-radius:4px 18px 18px 18px;color:#fce7f3}
+.bubble.user-b{background:linear-gradient(135deg,rgba(110,231,183,0.18),rgba(129,140,248,0.15));border:1px solid rgba(110,231,183,0.25);border-radius:18px 4px 18px 18px;color:var(--text)}
+.typing-row{display:flex;align-items:flex-end;gap:7px}
+.typing-bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 18px 18px 18px;padding:14px 18px;display:flex;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+
+.crisis-banner{margin:0 14px 6px;padding:10px 14px;border-radius:12px;background:rgba(252,165,165,0.08);border:1px solid rgba(252,165,165,0.2);color:#fca5a5;font-size:12px;text-align:center}
+
+/* Volunteer waiting */
+.waiting-card{margin:16px;background:rgba(244,114,182,0.07);border:1px solid rgba(244,114,182,0.2);border-radius:16px;padding:20px;text-align:center}
+.waiting-spinner{width:40px;height:40px;border:3px solid rgba(244,114,182,0.2);border-top-color:var(--accent3);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+.waiting-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--accent3);margin-bottom:6px}
+.waiting-sub{color:#94a3b8;font-size:13px;line-height:1.6}
+
+.input-area{padding:10px 14px 20px;border-top:1px solid var(--border);background:rgba(8,12,26,0.92);backdrop-filter:blur(12px)}
+.input-wrap{display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:10px 10px 10px 15px}
+textarea{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:14px;line-height:1.6;font-family:'DM Sans',sans-serif;resize:none;max-height:100px;overflow-y:auto}
+textarea::placeholder{color:var(--muted)}
+.send-btn{width:38px;height:38px;border-radius:12px;border:none;background:rgba(110,231,183,0.15);color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.send-btn:disabled{background:rgba(255,255,255,0.04);color:#374151;cursor:not-allowed}
+.send-btn:active:not(:disabled){transform:scale(0.88)}
+.input-hint{color:#374151;font-size:11px;text-align:center;margin-top:7px}
+
+/* VOLUNTEER PANEL */
+#volunteerPanel{padding:36px 22px 32px;animation:fadeUp .4s ease}
+.vol-header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.vol-badge{background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.25);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--accent3);font-weight:600}
+.vol-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);margin-bottom:4px}
+.stat-label{color:var(--muted);font-size:11px}
+.vol-queue{display:flex;flex-direction:column;gap:10px}
+.queue-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s}
+.queue-item:active{transform:scale(0.98)}
+.queue-item.urgent{border-color:rgba(252,165,165,0.3);background:rgba(252,165,165,0.06)}
+.q-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.q-avatar{width:38px;height:38px;border-radius:10px;background:rgba(110,231,183,0.12);border:1px solid rgba(110,231,183,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.q-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text)}
+.q-time{font-size:11px;color:var(--muted)}
+.q-cat{font-size:12px;padding:3px 10px;border-radius:100px;background:rgba(110,231,183,0.1);color:var(--accent);font-weight:600}
+.q-preview{color:#94a3b8;font-size:13px;line-height:1.5}
+.accept-btn{width:100%;margin-top:12px;background:linear-gradient(135deg,rgba(110,231,183,0.2),rgba(129,140,248,0.15));border:1px solid rgba(110,231,183,0.3);color:var(--text);padding:12px;border-radius:12px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.accept-btn.pink{background:linear-gradient(135deg,rgba(244,114,182,0.2),rgba(129,140,248,0.15));border-color:rgba(244,114,182,0.3)}
+.accept-btn:active{transform:scale(0.97)}
+
+/* BREATHING */
+#breathing{position:fixed;inset:0;background:rgba(8,12,26,0.97);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#breathing.active{display:flex}
+.b-label{color:var(--muted);font-size:12px;letter-spacing:3px;text-transform:uppercase}
+.b-circle{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(110,231,183,0.25) 0%,rgba(110,231,183,0.04) 70%);border:2px solid rgba(110,231,183,0.4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px rgba(110,231,183,0.12);transition:transform 4s ease-in-out}
+.b-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:700;color:var(--accent)}
+.b-phase{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)}
+.b-close{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:11px 30px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px}
+
+/* NAV BAR */
+.nav-bar{display:flex;background:rgba(8,12,26,0.95);border-top:1px solid var(--border);padding:8px 0 20px;position:fixed;bottom:0;left:0;right:0;z-index:50;backdrop-filter:blur(12px)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 0;transition:all .2s}
+.nav-icon{font-size:20px}
+.nav-label{font-size:10px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:500}
+.nav-item.active .nav-label{color:var(--accent)}
+
+/* MOOD */
+.mood-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 12px;margin-bottom:10px}
+.mood-title{color:var(--muted);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+.mood-row{display:flex;justify-content:space-around}
+.mood-btn{background:transparent;border:1px solid transparent;border-radius:12px;padding:8px 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
+.mood-btn.sel{background:rgba(110,231,183,0.12);border-color:rgba(110,231,183,0.35)}
+.mood-emoji{font-size:26px}
+.mood-text{font-size:9px;color:var(--muted)}
+
+/* GEMINI API KEY INPUT */
+.api-setup{background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.2);border-radius:16px;padding:18px;margin-bottom:16px}
+.api-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fbbf24;margin-bottom:6px}
+.api-desc{color:#94a3b8;font-size:12px;line-height:1.6;margin-bottom:12px}
+.api-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:10px}
+.api-save{background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;padding:10px;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;width:100%}
+.api-link{color:#60a5fa;font-size:12px;text-decoration:none;display:block;text-align:center;margin-top:6px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px) scale(0.97)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcome" class="screen active">
+  <div style="text-align:center">
+    <div class="logo-icon">🧠</div>
+    <h1>MindSpace</h1>
+    <p class="tagline">Anonim • Xavfsiz • 24/7<br>O'zbekistondagi birinchi mental yordam platformasi</p>
+  </div>
+  <div class="guarantee-box">
+    <div class="g-title">Kafolatlar</div>
+    <div class="g-item"><span>🔒</span><span>To'liq anonimlik — ismingiz saqlanmaydi</span></div>
+    <div class="g-item"><span>🤝</span><span>Hech qachon hukm qilinmaysiz</span></div>
+    <div class="g-item"><span>🤖</span><span>AI + ko'ngilli tinglovchilar</span></div>
+    <div class="g-item"><span>🆘</span><span>Krizisda darhol yordam — 1099</span></div>
+  </div>
+  <div class="agree-row" onclick="toggleAgree()">
+    <div class="checkbox" id="checkbox"></div>
+    <span class="agree-text">Men maxfiylik shartlariga roziman. Suhbatlar 7 kundan keyin o'chiriladi.</span>
+  </div>
+  <button class="start-btn off" id="startBtn" onclick="goCategory()">Boshlash →</button>
+</div>
+
+<!-- CATEGORY -->
+<div id="category" class="screen">
+  <button class="back-btn" onclick="showScreen('welcome')">← Orqaga</button>
+  <div class="stitle">Nima haqida<br>gaplashmoqchisiz?</div>
+  <p class="ssub">Mavzu tanlang</p>
+  <div class="cat-grid">
+    <div class="cat-btn" onclick="pickCategory('stress','😮‍💨','Stress')"><div class="cat-emoji">😮‍💨</div><div class="cat-label">Stress</div></div>
+    <div class="cat-btn" onclick="pickCategory('relationship','💔','Munosabat')"><div class="cat-emoji">💔</div><div class="cat-label">Munosabat</div></div>
+    <div class="cat-btn" onclick="pickCategory('lonely','🌙','Yolg\'izlik')"><div class="cat-emoji">🌙</div><div class="cat-label">Yolg'izlik</div></div>
+    <div class="cat-btn" onclick="pickCategory('family','🏠','Oila')"><div class="cat-emoji">🏠</div><div class="cat-label">Oila</div></div>
+    <div class="cat-btn" onclick="pickCategory('study','📚','O\'qish')"><div class="cat-emoji">📚</div><div class="cat-label">O'qish</div></div>
+    <div class="cat-btn" onclick="pickCategory('work','💼','Ish')"><div class="cat-emoji">💼</div><div class="cat-label">Ish</div></div>
+    <div class="cat-btn full crisis" onclick="pickCategory('crisis','🆘','Krizis')"><div class="cat-emoji">🆘</div><div class="cat-label">Krizis — Darhol yordam</div></div>
+  </div>
+</div>
+
+<!-- MODE SELECT -->
+<div id="modeSelect" class="screen">
+  <button class="back-btn" onclick="showScreen('category')">← Orqaga</button>
+  <div class="stitle">Kim bilan<br>gaplashmoqchisiz?</div>
+  <p class="ssub">Suhbat turini tanlang</p>
+  <div class="mode-cards">
+    <button class="mode-card ai-card" onclick="startAIChat()">
+      <div class="mode-icon">🤖</div>
+      <div class="mode-title">AI Tinglovchi</div>
+      <div class="mode-desc">Sun'iy intellekt bilan darhol suhbat. 24/7 ishlaydi, kutish kerak emas. Sizni hukm qilmaydi.</div>
+      <span class="mode-badge ai-badge">⚡ Darhol boshlash</span>
+    </button>
+    <button class="mode-card human-card" onclick="startHumanChat()">
+      <div class="mode-icon">🙋</div>
+      <div class="mode-title">Haqiqiy Tinglovchi</div>
+      <div class="mode-desc">O'qitilgan ko'ngilli inson. Chuqurroq tushunish, jonli muloqot. Kutish vaqti: 5-15 daqiqa.</div>
+      <span class="mode-badge human-badge">🕐 Navbat kerak</span>
+    </button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="screen">
+  <div class="chat-header">
+    <button class="back-btn" style="margin:0" onclick="showScreen('modeSelect')">←</button>
+    <div class="chat-avatar" id="chatAvatar">🧠</div>
+    <div>
+      <div class="chat-info-name" id="chatName">MindSpace AI</div>
+      <div class="chat-info-status"><span class="sdot green" id="statusDot"></span><span id="statusText">Aktiv</span></div>
+    </div>
+    <div class="header-tools">
+      <button class="tool-btn" onclick="showBreathing()">🫁</button>
+      <button class="tool-btn" onclick="showMoodCard()">😊</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div id="crisisBanner" class="crisis-banner" style="display:none">
+    🆘 Krizis holatida: <strong>1099</strong> — Yoshlar ishonch telefoni
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="msgInput" placeholder="Xayollaringizni yozing..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>↑</button>
+    </div>
+    <div class="input-hint">MindSpace • To'liq anonimlik kafolatlangan</div>
+  </div>
+</div>
+
+<!-- VOLUNTEER PANEL -->
+<div id="volunteerPanel" class="screen">
+  <div class="vol-header">
+    <div>
+      <div class="stitle" style="font-size:22px;margin-bottom:4px">Volunteer Panel</div>
+      <div style="color:var(--muted);font-size:13px">Faol tinglovchi rejimi</div>
+    </div>
+    <div class="vol-badge">🙋 Volunteer</div>
+  </div>
+
+  <div class="vol-stats">
+    <div class="stat-card"><div class="stat-num" id="statActive">3</div><div class="stat-label">Kutayotgan</div></div>
+    <div class="stat-card"><div class="stat-num" id="statDone">12</div><div class="stat-label">Bugun yordam</div></div>
+    <div class="stat-card"><div class="stat-num" id="statRating">4.8⭐</div><div class="stat-label">Reyting</div></div>
+  </div>
+
+  <div style="color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Navbat</div>
+
+  <div class="vol-queue" id="volQueue">
+    <div class="queue-item" onclick="acceptUser('Anonim#4821','😮‍💨','Stress','Ish joyida juda qiyin bo\'lyapti...')">
+      <div class="q-top">
+        <div class="q-avatar">😮‍💨</div>
+        <div><div class="q-name">Anonim #4821</div><div class="q-time">3 daqiqa kutmoqda</div></div>
+        <span class="q-cat">Stress</span>
+      </div>
+      <div class="q-preview">Ish joyida juda qiyin bo'lyapti...</div>
+      <button class="accept-btn">Qabul qilish</button>
+    </div>
+    <div class="queue-item urgent" onclick="acceptUser('Anonim#2203','🆘','Krizis','Yordamga muhtojman...')">
+      <div class="q-top">
+        <div class="q-avatar">🆘</div>
+        <div><div class="q-name">Anonim #2203</div><div class="q-time" style="color:#fca5a5">8 daqiqa kutmoqda ⚠️</div></div>
+        <span class="q-cat" style="background:rgba(252,165,165,0.1);color:#fca5a5">Krizis</span>
+      </div>
+      <div class="q-preview">Yordamga muhtojman...</div>
+      <button class="accept-btn pink">Darhol qabul qilish</button>
+    </div>
+    <div class="queue-item" onclick="acceptUser('Anonim#7734','💔','Munosabat','Do\'stim bilan muammo...')">
+      <div class="q-top">
+        <div class="q-avatar">💔</div>
+        <div><div class="q-name">Anonim #7734</div><div class="q-time">1 daqiqa kutmoqda</div></div>
+        <span class="q-cat">Munosabat</span>
+      </div>
+      <div class="q-preview">Do'stim bilan muammo...</div>
+      <button class="accept-btn">Qabul qilish</button>
+    </div>
+  </div>
+</div>
+
+<!-- BREATHING -->
+<div id="breathing">
+  <div class="b-label" id="bCycles">Nafas mashqi</div>
+  <div class="b-circle" id="bCircle"><span class="b-num" id="bNum">4</span></div>
+  <div class="b-phase" id="bPhase">Nafas oling</div>
+  <button class="b-close" onclick="stopBreathing()">Yopish</button>
+</div>
+
+<!-- NAV BAR -->
+<div class="nav-bar" id="navBar" style="display:none">
+  <div class="nav-item active" id="nav-chat" onclick="navTo('chat-view')">
+    <span class="nav-icon">💬</span>
+    <span class="nav-label">Suhbat</span>
+  </div>
+  <div class="nav-item" id="nav-vol" onclick="navTo('volunteer-view')">
+    <span class="nav-icon">🙋</span>
+    <span class="nav-label">Volunteer</span>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="navTo('settings-view')">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Sozlamalar</span>
+  </div>
+</div>
+
+<script>
+if(window.Telegram&&window.Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}
+
+// ===== STATE =====
+let agreed=false,category=null,chatMode='ai',chatHistory=[],loading=false;
+let breathIdx=0,breathCycles=0,breathCount=0,breathIv=null;
+let moodDone=false,volunteerMode=false;
+let GEMINI_KEY=localStorage.getItem('gemini_key')||'';
+
+const WELCOME={
+  stress:"Stress haqida gaplashishga qaror qilganingiz uchun rahmat. Bu qadam — o'zingizga g'amxo'rlik. Nima bo'layapti?",
+  relationship:"Munosabatlar ba'zan juda og'ir bo'lishi mumkin. Men bu yerda tinglash uchun tayorman. Nima yuragingizni ezayapti?",
+  lonely:"Yolg'izlik hissi — juda chuqur tuyg'u. Siz yolg'iz emasiz. Hozir qanday his qilyapsiz?",
+  family:"Oilaviy muammolar ichki og'irlikni oshiradi. Xavfsiz muhitda gaplashaylik. Nima bo'ldi?",
+  study:"O'qish bosimi juda katta bo'lishi mumkin. Nima qiyinlashtiryapti?",
+  work:"Ish stressi hayotimizni qiyinlashtiradi. Nima bo'layapti?",
+  crisis:"🆘 Siz hozir og'ir paytdasiz — bu mening oldimda ochiqligingiz uchun kuchli odamsiz. Agar xavf bo'lsa: 1099 ga zang qiling. Men siz bilan birman. Nima his qilyapsiz?"
+};
+
+const HUMAN_WELCOME={
+  stress:"Salom! Men Kamola, ko'ngilli tinglovchiman. Ish stressingiz haqida gaplashishga tayyorman. Nima bo'layapti?",
+  relationship:"Salom! Men Jasur. Munosabatlar haqida ochiq gaplashaylik. Men tinglash uchun bu yerdaman.",
+  lonely:"Salom! Men Nilufar. Yolg'izlik og'ir his — lekin siz yolg'iz emassiz. Nima haqida gaplashmoqchisiz?",
+  family:"Salom! Men Sardor. Oilaviy masalalar juda murakkab bo'lishi mumkin. Gaplashaylik.",
+  study:"Salom! Men Malika. O'qish bosimini birga ko'rib chiqamiz. Nima qiynayapti?",
+  work:"Salom! Men Bobur. Ish muammolari haqida gaplashaylik. Nima sodir bo'ldi?",
+  crisis:"🆘 Salom. Men Zulfiya, tajribali ko'ngilli. Siz bilan birmanman. Iltimos, 1099 ga ham qo'ng'iroq qiling. Nima his qilyapsiz?"
+};
+
+const HUMAN_NAMES={stress:"Kamola 🌿",relationship:"Jasur ☀️",lonely:"Nilufar 🌸",family:"Sardor 🍃",study:"Malika ⭐",work:"Bobur 💙",crisis:"Zulfiya 🤍"};
+
+// ===== SCREENS =====
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toggleAgree(){
+  agreed=!agreed;
+  document.getElementById('checkbox').className='checkbox'+(agreed?' on':'');
+  document.getElementById('startBtn').className='start-btn '+(agreed?'on':'off');
+}
+
+function goCategory(){if(agreed)showScreen('category')}
+
+function pickCategory(id,emoji,label){
+  category={id,emoji,label};
+  showScreen('modeSelect');
+}
+
+// ===== AI CHAT =====
+function startAIChat(){
+  chatMode='ai';
+  document.getElementById('chatAvatar').className='chat-avatar ai-av';
+  document.getElementById('chatAvatar').textContent='🤖';
+  document.getElementById('chatName').textContent='MindSpace AI';
+  document.getElementById('statusDot').className='sdot green';
+  document.getElementById('statusText').className='status-ai';
+  document.getElementById('statusText').textContent='AI Aktiv • '+category.label;
+  document.getElementById('crisisBanner').style.display=category.id==='crisis'?'block':'none';
+  chatHistory=[];moodDone=false;
+  document.getElementById('messages').innerHTML='';
+  showScreen('chat');
+  addMsg('ai',WELCOME[category.id]);
+}
+
+// ===== HUMAN CHAT =====
+function startHumanChat(){
+  chatMode='human';
+  document.getElementById('chatAvatar').className='chat-avatar human-av';
+  document.getElementById('chatAvatar').textContent='🙋';
+  document.getElementById('chatName').textContent=HUMAN_NAMES[category.id]||'Tinglovchi';
+  document.getElementById('statusDot').className='sdot pink';
+  document.getElementById('statusText').className='status-human';
+  document.getElementById('statusText').textContent='Ulanmoqda...';
+  document.getElementById('crisisBanner').style.display=category.id==='crisis'?'block':'none';
+  chatHistory=[];moodDone=false;
+  const msgs=document.getElementById('messages');
+  msgs.innerHTML=`
+    <div class="waiting-card">
+      <div class="waiting-spinner"></div>
+      <div class="waiting-title">Tinglovchi qidirilmoqda...</div>
+      <div class="waiting-sub">${HUMAN_NAMES[category.id]||'Ko\'ngilli'} bilan ulanilmoqda.<br>Taxminan 5-10 daqiqa kutish kerak.</div>
+    </div>`;
+  showScreen('chat');
+  // Simulate volunteer connecting
+  setTimeout(()=>{
+    msgs.innerHTML='';
+    document.getElementById('statusText').textContent='Online • '+category.label;
+    addMsg('human',HUMAN_WELCOME[category.id]);
+  },3000);
+}
+
+// Volunteer accepts from panel
+function acceptUser(name,emoji,cat,preview){
+  category={id:cat.toLowerCase(),emoji,label:cat};
+  chatMode='human-vol';
+  document.getElementById('chatAvatar').className='chat-avatar ai-av';
+  document.getElementById('chatAvatar').textContent=emoji;
+  document.getElementById('chatName').textContent=name;
+  document.getElementById('statusDot').className='sdot green';
+  document.getElementById('statusText').textContent='Siz bilan bog\'landi';
+  document.getElementById('crisisBanner').style.display=cat==='Krizis'?'block':'none';
+  chatHistory=[];moodDone=false;
+  document.getElementById('messages').innerHTML='';
+  showScreen('chat');
+  addMsg('ai',`👋 ${name} bilan suhbat boshlandi. Dastlabki xabari: "${preview}"`);
+}
+
+// ===== SEND MESSAGE =====
+async function sendMessage(){
+  const inp=document.getElementById('msgInput');
+  const text=inp.value.trim();
+  if(!text||loading)return;
+  inp.value='';inp.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;
+  loading=true;
+  chatHistory.push({role:'user',content:text});
+  addMsg('user',text);
+
+  if(chatMode==='ai'){
+    await sendToAI(text);
+  } else {
+    // Simulate human volunteer response
+    showTyping();
+    setTimeout(()=>{
+      removeTyping();
+      const replies=[
+        "Tushunaman, bu juda og'ir bo'lishi kerak. Yana gaplashing.",
+        "Sizni eshityapman. Bu hislar tabiiy. Davom eting.",
+        "Bu vaziyatda shunday his qilish normal. Nima yordam berishim mumkin?",
+        "Raxmat bu haqda menga aytganingiz uchun. Yana nima qiynayapti?",
+        "Siz yolg'iz emassiz. Birga yechim topamiz."
+      ];
+      const r=replies[Math.floor(Math.random()*replies.length)];
+      addMsg('human',r);
+      chatHistory.push({role:'assistant',content:r});
+      loading=false;
+    },1500+Math.random()*1500);
+  }
+}
+
+async function sendToAI(text){
+  showTyping();
+  // Try Gemini API
+  if(GEMINI_KEY){
+    try{
+      const sysPrompt=`Sen MindSpace — O'zbekistondagi anonim psixologik yordam botisan. Empatik, issiq, professional tinglovchisan. O'zbek madaniyatini yaxshi tushunasan. Hukm qilmaysan. Har javob 2-4 jumla. Krizis belgilari ko'rsang 1099 ni tavsiya qil. Faqat O'zbek tilida gapir. Mavzu: ${category?.label}`;
+      const msgs=[{role:'user',parts:[{text:sysPrompt+'\n\nFoydalanuvchi: '+text}]}];
+      if(chatHistory.length>1){
+        // include history
+      }
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{role:'user',parts:[{text:sysPrompt}]},{role:'model',parts:[{text:WELCOME[category.id]}]},...chatHistory.slice(0,-1).map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.content}]})),{role:'user',parts:[{text}]}]})
+      });
+      const d=await res.json();
+      removeTyping();
+      const reply=d.candidates?.[0]?.content?.parts?.[0]?.text||'Javob olishda xatolik.';
+      addMsg('ai',reply);
+      chatHistory.push({role:'assistant',content:reply});
+      loading=false;
+      return;
+    }catch(e){console.log('Gemini error',e)}
+  }
+  // Fallback smart responses
+  removeTyping();
+  loading=false;
+  const fallbacks=[
+    "Sizni eshityapman. Bu hislar haqida ko'proq gaplashing — bu juda muhim.",
+    "Bu vaziyat juda og'ir bo'lishi mumkin. O'zingizni qanday his qilyapsiz hozir?",
+    "Raxmat bu haqda aytganingiz uchun. Siz yolg'iz emassiz.",
+    "Tushunaman. Bu his tabiiy. Yana nima yurdingizda aylanmoqda?",
+    "Bu juda muhim — davom eting, men tinglayman."
+  ];
+  const r=fallbacks[Math.floor(Math.random()*fallbacks.length)];
+  addMsg('ai',r+'<br><small style="color:#374151;font-size:11px">⚠️ AI kalit kerak — sozlamalarda kiriting</small>');
+  chatHistory.push({role:'assistant',content:r});
+}
+
+// ===== MESSAGES UI =====
+function addMsg(role,text){
+  const msgs=document.getElementById('messages');
+  if(role==='mood'){msgs.insertAdjacentHTML('beforeend',text);msgs.scrollTop=msgs.scrollHeight;return}
+  const isUser=role==='user';
+  const isHuman=role==='human';
+  const avClass=isHuman?'human-sm':'ai-sm';
+  const avIcon=isHuman?'🙋':'🤖';
+  const bubClass=isUser?'user-b':isHuman?'human-b':'ai-b';
+  const html=`<div class="msg-row ${isUser?'user':''}">
+    ${!isUser?`<div class="msg-avatar-sm ${avClass}">${avIcon}</div>`:''}
+    <div class="bubble ${bubClass}">${text}</div>
+  </div>`;
+  msgs.insertAdjacentHTML('beforeend',html);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  const msgs=document.getElementById('messages');
+  msgs.insertAdjacentHTML('beforeend',`<div class="typing-row" id="typingRow">
+    <div class="msg-avatar-sm ai-sm">🤖</div>
+    <div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  </div>`);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typingRow');if(t)t.remove()}
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,100)+'px';
+  document.getElementById('sendBtn').disabled=!el.value.trim();
+}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}
+
+// ===== MOOD =====
+function showMoodCard(){
+  if(moodDone)return;
+  const moods=[{e:'😞',l:'Juda yomon',v:1},{e:'😔',l:'Yomon',v:2},{e:'😐',l:"O'rtacha",v:3},{e:'🙂',l:'Yaxshi',v:4},{e:'😊',l:'Juda yaxshi',v:5}];
+  const btns=moods.map(m=>`<button class="mood-btn" onclick="selectMood(${m.v},'${m.e}','${m.l}')"><span class="mood-emoji">${m.e}</span><span class="mood-text">${m.l}</span></button>`).join('');
+  addMsg('mood',`<div class="mood-card"><div class="mood-title">Hozir kayfiyatingiz?</div><div class="mood-row">${btns}</div></div>`);
+}
+function selectMood(v,e,l){
+  moodDone=true;
+  document.querySelector('.mood-card')?.remove();
+  const r={1:"Bugun juda og'ir. Nima sodir bo'ldi?",2:"Yaxshi emas. Nima qiynayapti?",3:"Tushunaman. Gaplashaylik.",4:"Yaxshi! Nima bo'layapti?",5:"Ajoyib! Nima xursand qildi?"}[v];
+  const msg=`${e} ${l} — ${r}`;
+  addMsg(chatMode==='human'?'human':'ai',msg);
+  chatHistory.push({role:'assistant',content:msg});
+}
+
+// ===== BREATHING =====
+const bPhases=[{l:'Nafas oling',d:4,s:1.3},{l:'Ushlab turing',d:4,s:1.3},{l:'Nafas chiqaring',d:6,s:1}];
+function showBreathing(){document.getElementById('breathing').classList.add('active');breathIdx=0;breathCycles=0;runBreath()}
+function runBreath(){
+  const p=bPhases[breathIdx%3];
+  document.getElementById('bPhase').textContent=p.l;
+  document.getElementById('bCircle').style.transform=`scale(${p.s})`;
+  document.getElementById('bCircle').style.transition=`transform ${p.d}s ease-in-out`;
+  breathCount=p.d;
+  document.getElementById('bNum').textContent=breathCount;
+  document.getElementById('bCycles').textContent=`Nafas mashqi • ${breathCycles} sikl`;
+  breathIv=setInterval(()=>{
+    breathCount--;
+    document.getElementById('bNum').textContent=breathCount;
+    if(breathCount<=0){clearInterval(breathIv);breathIdx++;if(breathIdx%3===0)breathCycles++;runBreath()}
+  },1000);
+}
+function stopBreathing(){clearInterval(breathIv);document.getElementById('breathing').classList.remove('active')}
+
+// ===== VOLUNTEER MODE =====
+function goVolunteerPanel(){showScreen('volunteerPanel')}
+
+// ===== GEMINI KEY SETUP =====
+// Show in category screen if no key
+document.addEventListener('DOMContentLoaded',()=>{
+  if(!GEMINI_KEY){
+    const cat=document.getElementById('category');
+    const setup=`<div class="api-setup">
+      <div class="api-title">🔑 AI uchun API kalit kerak</div>
+      <div class="api-desc">Gemini AI bepul. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="api-link">aistudio.google.com</a> dan kalit oling</div>
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="AIza... kalitingizni kiriting">
+      <button class="api-save" onclick="saveKey()">Saqlash va boshlash</button>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="api-link">→ Bepul kalit olish</a>
+    </div>`;
+    cat.insertAdjacentHTML('afterbegin',setup);
+  }
+});
+
+function saveKey(){
+  const k=document.getElementById('apiKeyInput')?.value?.trim();
+  if(k){GEMINI_KEY=k;localStorage.setItem('gemini_key',k);document.querySelector('.api-setup')?.remove();alert('✅ Kalit saqlandi!')}
+}
+</script>
+</body>
+</html>
